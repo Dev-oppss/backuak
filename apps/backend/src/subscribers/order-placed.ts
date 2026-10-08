@@ -24,7 +24,7 @@ export default async function orderPlacedHandler({
 
   const { data: orders } = await query.graph({
     entity: "order",
-    fields: ["id", "cart_id", "delivery_stage.id"],
+    fields: ["id", "cart.id", "delivery_stage.id"],
     filters: { id: data.id },
   })
   const order = orders[0]
@@ -40,24 +40,24 @@ export default async function orderPlacedHandler({
 
   // Rattache le point de livraison choisi, s'il y en a un sur le panier
   // d'origine de la commande.
-  if (order.cart_id) {
-    const { data: carts } = await query.graph({
-      entity: "cart",
-      fields: ["id", "metadata"],
-      filters: { id: order.cart_id },
-    })
-    const deliveryPointId = (carts[0]?.metadata as Record<string, unknown> | null)
-      ?.delivery_point_id as string | undefined
+  const cartId = order.cart?.id
+if (cartId) {
+  const { data: carts } = await query.graph({
+    entity: "cart",
+    fields: ["id", "metadata"],
+    filters: { id: cartId },
+  })
+  const deliveryPointId = (carts[0]?.metadata as Record<string, unknown> | null)
+    ?.delivery_point_id as string | undefined
 
-    if (deliveryPointId) {
-      await link.create({
-        order: { order_id: order.id },
-        [DELIVERY_POINT_MODULE]: { delivery_point_id: deliveryPointId },
-      })
-    }
+  if (deliveryPointId) {
+    await link.create({
+      order: { order_id: order.id },
+      [DELIVERY_POINT_MODULE]: { delivery_point_id: deliveryPointId },
+    })
   }
 }
-
+}
 export const config: SubscriberConfig = {
   event: "order.placed",
 }

@@ -1,4 +1,4 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 
 /**
  * GET /store/orders/:id/delivery-stage
@@ -8,7 +8,7 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
  * propriétaire de la commande (voir middlewares.ts — authenticate("customer")
  * + vérification que la commande lui appartient, ci-dessous).
  */
-export async function GET(req: MedusaRequest, res: MedusaResponse) {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
   const query = req.scope.resolve("query")
 
@@ -19,9 +19,9 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   })
 
   const order = data[0]
-  const customerId = (req.auth_context as any)?.actor_id
+  const customerId = req.auth_context?.actor_id
 
-  if (!order || order.customer_id !== customerId) {
+  if (!order || !customerId || order.customer_id !== customerId) {
     res.status(404).json({ message: "Commande introuvable." })
     return
   }

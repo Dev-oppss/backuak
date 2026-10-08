@@ -1,4 +1,4 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import type { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { REVIEW_MODULE } from "../../../modules/review"
 import { shouldFlagReview } from "../../../modules/review/spam-filter"
 import type { z } from "@medusajs/framework/zod"
@@ -11,7 +11,7 @@ type PostStoreReviewType = z.infer<typeof PostStoreReview>
  * Route PUBLIQUE — ne renvoie que les avis "published" (jamais "flagged"
  * ni "removed"), avec la moyenne et le total.
  */
-export async function GET(req: MedusaRequest, res: MedusaResponse) {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { product_id } = req.query as { product_id?: string }
   if (!product_id) {
     res.status(400).json({ message: "product_id est requis." })
@@ -64,10 +64,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * doublon (comme Amazon, qui permet de modifier son avis).
  */
 export async function POST(
-  req: MedusaRequest<PostStoreReviewType>,
+  req: AuthenticatedMedusaRequest<PostStoreReviewType>,
   res: MedusaResponse
 ) {
-  const customerId = (req.auth_context as any)?.actor_id
+  const customerId = req.auth_context ?.actor_id
   const query = req.scope.resolve("query")
 
   const { data: customers } = await query.graph({
