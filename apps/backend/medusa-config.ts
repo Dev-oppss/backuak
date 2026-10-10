@@ -1,6 +1,6 @@
-import { loadEnv, defineConfig } from '@medusajs/framework/utils'
+import { loadEnv, defineConfig } from "@medusajs/framework/utils";
 
-loadEnv(process.env.NODE_ENV || 'development', process.cwd())
+loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
 module.exports = defineConfig({
   projectConfig: {
@@ -11,7 +11,7 @@ module.exports = defineConfig({
       authCors: process.env.AUTH_CORS!,
       jwtSecret: process.env.JWT_SECRET,
       cookieSecret: process.env.COOKIE_SECRET,
-    }
+    },
   },
   modules: [
     // ...les modules déjà enregistrés...
@@ -24,5 +24,20 @@ module.exports = defineConfig({
     { resolve: "./modules/email-verification" },
     { resolve: "./modules/site-settings" },
     { resolve: "./modules/homepage" },
+    {
+      resolve: "@medusajs/medusa/file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/file-local",
+            id: "local",
+            options: {
+              upload_dir: "/home/webmaster/uploads",
+              backend_url: "https://api.kuakumarket.com/static",
+            },
+          },
+        ],
+      },
+    },
   ],
-})
+});
