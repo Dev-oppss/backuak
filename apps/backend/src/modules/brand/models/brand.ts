@@ -8,6 +8,8 @@ import { model } from "@medusajs/framework/utils"
 const Brand = model.define("brand", {
   id: model.id().primaryKey(),
   name: model.text().searchable(),
+  // Logo officiel de la marque (URL d'une image envoyée depuis l'admin → Marques).
+  logo_url: model.text().nullable(),
 })
 
 export default Brand

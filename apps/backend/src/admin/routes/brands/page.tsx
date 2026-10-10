@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
  * renommer, supprimer. Les produits et catégories, eux, se gèrent déjà
  * dans les écrans natifs de Medusa (Produits / Catégories).
  */
-type Brand = { id: string; name: string }
+type Brand = { id: string; name: string; logo_url?: string | null }
 
 const BrandsPage = () => {
   const [brands, setBrands] = useState<Brand[]>([])
@@ -61,6 +61,31 @@ const BrandsPage = () => {
     }
   }
 
+  const uploadLogo = async (b: Brand, file: File) => {
+    try {
+      const form = new FormData()
+      form.append("files", file)
+      const up = await fetch("/admin/uploads", { method: "POST", credentials: "include", body: form })
+      if (!up.ok) throw new Error()
+      const { files } = await up.json()
+      await call(`/admin/brands/${b.id}`, "POST", { logo_url: files[0].url })
+      load()
+      toast.success(`Logo de « ${b.name} » enregistré`)
+    } catch {
+      toast.error("Impossible d'envoyer le logo")
+    }
+  }
+
+  const removeLogo = async (b: Brand) => {
+    try {
+      await call(`/admin/brands/${b.id}`, "POST", { logo_url: null })
+      load()
+      toast.success("Logo retiré")
+    } catch {
+      toast.error("Impossible de retirer le logo")
+    }
+  }
+
   const remove = async (b: Brand) => {
     if (!window.confirm(`Supprimer la marque « ${b.name} » ? Les produits liés resteront, sans marque.`)) return
     try {
@@ -92,6 +117,7 @@ const BrandsPage = () => {
           <Table>
             <Table.Header>
               <Table.Row>
+                <Table.HeaderCell>Logo</Table.HeaderCell>
                 <Table.HeaderCell>Nom</Table.HeaderCell>
                 <Table.HeaderCell className="text-right">Actions</Table.HeaderCell>
               </Table.Row>
@@ -99,6 +125,37 @@ const BrandsPage = () => {
             <Table.Body>
               {brands.map((b) => (
                 <Table.Row key={b.id}>
+                  <Table.Cell>
+                    <div className="flex items-center gap-2">
+                      {b.logo_url ? (
+                        <img src={b.logo_url} alt={b.name} className="h-9 w-20 rounded border object-contain bg-white p-1" />
+                      ) : (
+                        <span className="text-ui-fg-muted text-xs">Aucun</span>
+                      )}
+                      <label
+                        htmlFor={`logo-${b.id}`}
+                        className="cursor-pointer rounded-md border px-2 py-1 text-xs hover:bg-ui-bg-base-hover"
+                      >
+                        {b.logo_url ? "Changer" : "Ajouter"}
+                      </label>
+                      <input
+                        id={`logo-${b.id}`}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (f) uploadLogo(b, f)
+                          e.target.value = ""
+                        }}
+                      />
+                      {b.logo_url && (
+                        <button type="button" className="text-xs text-ui-fg-error" onClick={() => removeLogo(b)}>
+                          Retirer
+                        </button>
+                      )}
+                    </div>
+                  </Table.Cell>
                   <Table.Cell>
                     {editingId === b.id ? (
                       <Input value={editingName} onChange={(e) => setEditingName(e.target.value)} />
