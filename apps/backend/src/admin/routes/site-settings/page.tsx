@@ -11,12 +11,12 @@ import { useEffect, useState } from "react"
  */
 type Settings = {
   phone: string; whatsapp: string; email: string; address: string; hours: string
-  instagram: string; facebook: string; tiktok: string; banner_messages: string
+  instagram: string; facebook: string; tiktok: string; youtube: string; banner_messages: string
 }
 
 const EMPTY: Settings = {
   phone: "", whatsapp: "", email: "", address: "", hours: "",
-  instagram: "", facebook: "", tiktok: "", banner_messages: "",
+  instagram: "", facebook: "", tiktok: "", youtube: "", banner_messages: "",
 }
 
 const SiteSettingsPage = () => {
@@ -38,6 +38,7 @@ const SiteSettingsPage = () => {
             instagram: settings.instagram ?? "",
             facebook: settings.facebook ?? "",
             tiktok: settings.tiktok ?? "",
+            youtube: settings.youtube ?? "",
             banner_messages: (settings.banner_messages ?? []).join("\n"),
           })
         }
@@ -86,6 +87,7 @@ const SiteSettingsPage = () => {
         <Field label="Instagram (lien complet)" value={form.instagram} onChange={set("instagram")} placeholder="https://instagram.com/..." />
         <Field label="Facebook (lien complet)" value={form.facebook} onChange={set("facebook")} placeholder="https://facebook.com/..." />
         <Field label="TikTok (lien complet)" value={form.tiktok} onChange={set("tiktok")} placeholder="https://tiktok.com/@..." />
+        <Field label="YouTube (lien complet)" value={form.youtube} onChange={set("youtube")} placeholder="https://www.youtube.com/@..." />
       </div>
       <div className="px-6 py-4">
         <Label>Messages de la bannière défilante (un par ligne)</Label>

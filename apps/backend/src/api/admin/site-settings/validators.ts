@@ -9,5 +9,6 @@ export const PostAdminSiteSettings = z.object({
   instagram: z.string().max(300).optional(),
   facebook: z.string().max(300).optional(),
   tiktok: z.string().max(300).optional(),
+  youtube: z.string().max(300).optional(),
   banner_messages: z.array(z.string().max(200)).optional(),
 })

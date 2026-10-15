@@ -150,6 +150,22 @@
           "enumItems": [],
           "mappedType": "text"
         },
+        "youtube": {
+          "name": "youtube",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "text"
+        },
         "banner_messages": {
           "name": "banner_messages",
           "type": "jsonb",

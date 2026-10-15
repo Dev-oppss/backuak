@@ -15,6 +15,7 @@ const SiteSetting = model.define("site_setting", {
   instagram: model.text().nullable(),
   facebook: model.text().nullable(),
   tiktok: model.text().nullable(),
+  youtube: model.text().nullable(),
   banner_messages: model.json().nullable(),
 })
 
