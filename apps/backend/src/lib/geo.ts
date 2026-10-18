@@ -131,14 +131,33 @@ function isPrivate(ip: string): boolean {
 
 let readerPromise: Promise<Reader<CityResponse> | null> | null = null
 let warned = false
+let warnedPrivate = false
+
+/**
+ * Où chercher la base : GEOIP_DB_PATH si défini, sinon le dossier data/ du
+ * backend. En production, Medusa tourne depuis apps/backend/.medusa/server :
+ * "./data" y serait introuvable, d'où les chemins de remplacement.
+ */
+function candidatePaths(): string[] {
+  const rel = path.join("data", "geoip-city.mmdb")
+  const here = typeof __dirname !== "undefined" ? __dirname : null
+  return [
+    process.env.GEOIP_DB_PATH,
+    path.join(process.cwd(), rel),
+    path.join(process.cwd(), "..", "..", rel), // cwd = apps/backend/.medusa/server
+    here ? path.resolve(here, "..", "..", rel) : undefined, // dev : src/lib -> racine du backend
+    here ? path.resolve(here, "..", "..", "..", "..", rel) : undefined, // prod : .medusa/server/src/lib -> racine
+  ].filter((p): p is string => Boolean(p))
+}
 
 function getReader() {
   readerPromise ??= (async () => {
-    const file = process.env.GEOIP_DB_PATH || path.join(process.cwd(), "data", "geoip-city.mmdb")
-    if (!fs.existsSync(file)) {
+    const tried = candidatePaths()
+    const file = tried.find((f) => fs.existsSync(f))
+    if (!file) {
       if (!warned) {
         warned = true
-        console.warn(`[geo] base de localisation introuvable (${file}) : visites enregistrées sans lieu.`)
+        console.warn(`[geo] base de localisation introuvable, chemins essayés : ${tried.join(" | ")}`)
       }
       return null
     }
@@ -155,7 +174,16 @@ function getReader() {
 /** Localise une IP. Ne lève jamais d'erreur : en cas de doute, renvoie "inconnu". */
 export async function locateIp(ip: string | null): Promise<Geo> {
   try {
-    if (!ip || isPrivate(ip)) return NO_GEO
+    if (!ip) return NO_GEO
+    if (isPrivate(ip)) {
+      if (!warnedPrivate) {
+        warnedPrivate = true
+        console.warn(
+          "[geo] IP de visiteur locale/privée reçue : nginx ne transmet probablement pas X-Real-IP (proxy_set_header X-Real-IP $remote_addr;)."
+        )
+      }
+      return NO_GEO
+    }
     const reader = await getReader()
     const r = reader?.get(ip)
     if (!r) return NO_GEO
