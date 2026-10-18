@@ -24,3 +24,6 @@ build
 !.yarn/versions
 
 .medusa
+
+# Base de localisation IP (fichier lourd, à télécharger sur le serveur)
+/data/*.mmdb
