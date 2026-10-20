@@ -1,7 +1,7 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import type { z } from "@medusajs/framework/zod"
 import { SITE_ANALYTICS_MODULE } from "../../../modules/site-analytics"
-import { clientIp, locateIp } from "../../../lib/geo"
+import { clientIp, locateIp, normalizeCity, regionOfCity, type Geo } from "../../../lib/geo"
 import type { PostSiteEvent } from "./validators"
 
 type Body = z.infer<typeof PostSiteEvent>
@@ -20,7 +20,17 @@ export async function POST(req: MedusaRequest<Body>, res: MedusaResponse) {
   // Jour du Cameroun (UTC+1) : sans ce décalage, les visites entre minuit et 1 h
   // seraient comptées la veille.
   const day = new Date(Date.now() + 3600_000).toISOString().slice(0, 10)
-  const geo = await locateIp(clientIp(req as any))
+  // Le visiteur a indiqué son pays (et sa ville) dans la notification : on le croit.
+  // Sinon (notification fermée ou ignorée) : lieu approximatif déduit de l'IP, comme avant.
+  const { country, city } = req.validatedBody
+  let geo: Geo
+  if (country && /^[A-Za-z]{2}$/.test(country)) {
+    const code = country.toUpperCase()
+    const ville = normalizeCity(city)
+    geo = { country: code, region: code === "CM" ? regionOfCity(ville) : null, city: ville }
+  } else {
+    geo = await locateIp(clientIp(req as any))
+  }
 
   await siteAnalytics.createSiteEvents([
     {

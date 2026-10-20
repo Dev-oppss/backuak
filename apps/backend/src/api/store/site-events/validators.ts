@@ -6,4 +6,7 @@ export const PostSiteEvent = z.object({
   target: z.string().max(200).optional(),
   product_id: z.string().optional(),
   visitor_id: z.string().min(8).max(64),
+  // Lieu indiqué par le visiteur dans la notification (facultatif).
+  country: z.string().length(2).optional(),
+  city: z.string().max(80).optional(),
 })
